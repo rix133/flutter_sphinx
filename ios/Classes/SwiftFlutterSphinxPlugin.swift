@@ -124,7 +124,9 @@ public class SwiftFlutterSphinxPlugin: NSObject, FlutterPlugin, FlutterStreamHan
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    if (call.method == "load") {
+    if (call.method == "init") {
+      self.eventSink?(buildEvent(eventName: "initialized"))
+    } else if (call.method == "load") {
       sphinxListener.stop()
       self.eventSink?(buildEvent(eventName: "loading"))
       sphinxListener.loadVocabulary(words: call.arguments as! [String]) {
