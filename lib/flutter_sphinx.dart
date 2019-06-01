@@ -135,7 +135,7 @@ Future<void> copyAssetsToDocumentsDir(
         // Create the directory if needed
         String fileDir = filePath.substring(0, filePath.lastIndexOf("/"));
         print("Creating directory: $fileDir");
-        Directory(fileDir).create(recursive: true);
+        await Directory(fileDir).create(recursive: true);
         print("");
         await File(filePath).writeAsBytes(bytes);
       } else {
