@@ -22,7 +22,7 @@ class _MyAppState extends State<MyApp> {
     "neat"
   ];
 
-  int _phraseIndex = 0;
+  StreamController<int> _phraseIndex = StreamController()..add(0);
 
   final StreamController<bool> micPermissionGranted = StreamController();
 
@@ -103,109 +103,115 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget contentView() {
-    return StreamBuilder<SphinxState>(
-      stream: _sphinx.stateChanges,
+    return StreamBuilder<int>(
+      stream: _phraseIndex.stream,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.hasData) {
-          final state = snapshot.data;
-          if (state is SphinxStateLoading) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (state is SphinxStateUnloaded) {
-            return Center(
-              child: RaisedButton(
-                onPressed: () {
-                  state.loadVocabulary(_vocabulary[_phraseIndex]);
-                },
-                child: Text("Load Vocabulary"),
-              ),
-            );
-          } else if (state is SphinxStateUninitialized) {
-            return Center(
-              child: RaisedButton(
-                onPressed: () {
-                  initializeSphinx(state)
-                      .then((aVoid) => print("Initialization started"));
-                },
-                child: Text("Init recognizer"),
-              ),
-            );
-          } else if (state is SphinxStateLoaded) {
-            return Center(
-              child: RaisedButton(
-                onPressed: () {
-                  state.startListening();
-                },
-                child: Text("Start Listening"),
-              ),
-            );
-          } else if (state is SphinxStateListening) {
-            return Container(
-                width: double.infinity,
-                child: Column(children: [
-                  Text(_vocabulary[_phraseIndex], style: TextStyle(fontSize: 20.0),),
-                  StreamBuilder<String>(
-                    stream: state.partialResults(),
-                    builder: (BuildContext context, AsyncSnapshot snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data == _vocabulary[_phraseIndex]) {
-                          int nextPhrase =
-                              (_phraseIndex + 1) % _vocabulary.length;
-                          setState(() {
-                            _phraseIndex = nextPhrase;
-                          });
-                          state.nextPhrase(_vocabulary[nextPhrase]);
-                        }
-                        return Container(
-                          width: double.infinity,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(snapshot.data),
-                              RaisedButton(
-                                onPressed: () {
-                                  state.stopListening();
-                                },
-                                child: Text("Stop Listening"),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text("error while listening"),
-                        );
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                    },
-                  ),
-                ]));
-          } else if (state is SphinxStateError) {
-            return Center(
-              child: RaisedButton(
-                onPressed: () {
-                  state.reloadVocabulary(_vocabulary[_phraseIndex]);
-                },
-                child: Text("Reload Vocabulary"),
-              ),
-            );
-          } else {
-            throw StateError("unknown sphinx state");
-          }
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(snapshot.error),
-          );
-        } else {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+        int phraseIndex = snapshot.data;
+        return StreamBuilder<SphinxState>(
+            stream: _sphinx.stateChanges,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.hasData) {
+                final state = snapshot.data;
+                if (state is SphinxStateLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (state is SphinxStateUnloaded) {
+                  return Center(
+                    child: RaisedButton(
+                      onPressed: () {
+                        state.loadVocabulary(_vocabulary[phraseIndex]);
+                      },
+                      child: Text("Load Vocabulary"),
+                    ),
+                  );
+                } else if (state is SphinxStateUninitialized) {
+                  return Center(
+                    child: RaisedButton(
+                      onPressed: () {
+                        initializeSphinx(state)
+                            .then((aVoid) => print("Initialization started"));
+                      },
+                      child: Text("Init recognizer"),
+                    ),
+                  );
+                } else if (state is SphinxStateLoaded) {
+                  return Center(
+                    child: RaisedButton(
+                      onPressed: () {
+                        state.startListening();
+                      },
+                      child: Text("Start Listening"),
+                    ),
+                  );
+                } else if (state is SphinxStateListening) {
+                  return Container(
+                      width: double.infinity,
+                      child: Column(children: [
+                        Text(
+                          _vocabulary[phraseIndex],
+                          style: TextStyle(fontSize: 20.0),
+                        ),
+                        StreamBuilder<String>(
+                          stream: state.partialResults(),
+                          builder:
+                              (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasData) {
+                              if (snapshot.data == _vocabulary[phraseIndex]) {
+                                int nextIndex = (phraseIndex + 1) % _vocabulary.length;
+                                _phraseIndex.add(nextIndex);
+                                state.nextPhrase(_vocabulary[nextIndex]);
+                              }
+                              return Container(
+                                width: double.infinity,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(snapshot.data),
+                                    RaisedButton(
+                                      onPressed: () {
+                                        state.stopListening();
+                                      },
+                                      child: Text("Stop Listening"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                child: Text("error while listening"),
+                              );
+                            } else {
+                              return Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                          },
+                        ),
+                      ]));
+                } else if (state is SphinxStateError) {
+                  return Center(
+                    child: RaisedButton(
+                      onPressed: () {
+                        state.reloadVocabulary(_vocabulary[phraseIndex]);
+                      },
+                      child: Text("Reload Vocabulary"),
+                    ),
+                  );
+                } else {
+                  throw StateError("unknown sphinx state");
+                }
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(snapshot.error),
+                );
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            });
       },
     );
   }

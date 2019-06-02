@@ -16,7 +16,12 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
     private var eventSink: EventChannel.EventSink? = null
     private var listenEventSink: EventChannel.EventSink? = null
 
+    private var assetsDir: File? = null
+
     companion object {
+
+        const val KW_SEARCH = "keyword"
+
         @JvmStatic
         fun registerWith(registrar: Registrar) {
             // TODO: transcode iSPhinx swift class to Kotlin
@@ -49,23 +54,23 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
                 eventSink?.success(buildEvent("initialized"))
             }
             "load" -> {
-                (call.arguments as? String)?.let {
-                    loadVocabulary(listOf(it))
-                } ?: run {
-                    result.error("Error setting the vocabulary", null, null)
-                }
-
+                speechRecognizer?.addKeywordSearch(KW_SEARCH, File(assetsDir, "keyword_list.lst"))
+                loadVocabulary()
             }
             "start" -> {
-                start("keyphrase", result)
+                speechRecognizer?.addKeywordSearch(KW_SEARCH, File(assetsDir, "keyword_list.lst"))
+                start(result)
                 eventSink?.success(buildEvent("listening"))
                 result.success("Started listening")
             }
             "word" -> {
+                speechRecognizer?.cancel()
                 speechRecognizer?.stop()
-                start(call.arguments as String, result)
+                speechRecognizer?.addKeywordSearch(KW_SEARCH, File(assetsDir, "keyword_list.lst"))
+                start(result)
             }
             "stop" -> {
+                speechRecognizer?.cancel()
                 speechRecognizer?.stop()
                 eventSink?.success(buildEvent("loaded"))
                 result.success("Stopped listening")
@@ -80,6 +85,7 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
     }
 
     private fun initSpeechRecognizer(assetsDir: File) {
+        this.assetsDir = assetsDir
         speechRecognizer = SpeechRecognizerSetup
                 .defaultSetup()
                 .setAcousticModel(File(assetsDir, "en-us-ptm"))
@@ -87,22 +93,17 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
                 .setRawLogDir(assetsDir)
                 .recognizer
                 .also {
-                    it.addNgramSearch("weather", File(assetsDir, "weather.dmp"))
-                    
                     it.addListener(this)
                 }
     }
 
-    private fun loadVocabulary(words: List<String>) {
-//        speechRecognizer?.addKeyphraseSearch("keyphrase", words[0])
+    private fun loadVocabulary() {
         eventSink?.success(buildEvent("loaded"))
     }
 
-    private fun start(searchName: String, result: Result) {
+    private fun start(result: Result) {
         speechRecognizer?.let {
-
-//            it.addKeyphraseSearch("weather", searchName)
-            it.startListening("weather")
+            it.startListening(KW_SEARCH)
         } ?: run {
             result.error("Speech recognizer not initialized", null, null)
         }
@@ -131,8 +132,8 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
 //        recognizer.getDecoder().setLanguageModel(name: SEARCH_ID, nGramModel: nGramModel!)
 //    }
 
-    override fun onResult(p0: Hypothesis?) {
-
+    override fun onResult(hypothesis: Hypothesis?) {
+        listenEventSink?.success(hypothesis?.hypstr)
     }
 
     override fun onPartialResult(hypothesis: Hypothesis?) {

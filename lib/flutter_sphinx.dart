@@ -63,6 +63,7 @@ class SphinxStateUnloaded extends SphinxState {
   SphinxStateUnloaded(this._methodChannel);
 
   Future loadVocabulary(String phrase) async {
+    writeKeywordSearchFile([phrase]);
     await _methodChannel.invokeMethod("load", phrase);
   }
 }
@@ -105,7 +106,8 @@ class SphinxStateListening extends SphinxState {
             .where((s) => s != null && s.length > 0)
             .map<String>((message) {
       // we get a big string back of the partial results, we just need to send out the last item
-      return message.split(" ").last;
+      print(message);
+      return message.trim().split(" ").last;
     }).startWith("");
     return _partialResultStream;
   }
@@ -115,8 +117,22 @@ class SphinxStateListening extends SphinxState {
   }
 
   Future nextPhrase(String phrase) async {
-    await _methodChannel.invokeMethod("load", phrase);
+    writeKeywordSearchFile([phrase]);
+    await _methodChannel.invokeMethod("word", phrase);
   }
+}
+
+Future<void> writeKeywordSearchFile(List<String> keywords) async {
+  Directory directory = await getApplicationDocumentsDirectory();
+      String filePath = join(directory.path, "keyword_list.lst");
+
+      // Create the directory if needed
+      String fileDir = filePath.substring(0, filePath.lastIndexOf("/"));
+      print("Creating directory: $fileDir");
+      await Directory(fileDir).create(recursive: true);
+      print("Writing out the file");
+
+      await File(filePath).writeAsString(keywords.map( (keyword) => "$keyword /1e-1/" ).join("\n"));
 }
 
 Future<void> copyAssetsToDocumentsDir(
@@ -140,7 +156,7 @@ Future<void> copyAssetsToDocumentsDir(
         String fileDir = filePath.substring(0, filePath.lastIndexOf("/"));
         print("Creating directory: $fileDir");
         await Directory(fileDir).create(recursive: true);
-        print("");
+        print("Writing out the file");
         await File(filePath).writeAsBytes(bytes);
       } else {
         print("File already exists");
