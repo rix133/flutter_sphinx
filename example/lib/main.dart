@@ -26,6 +26,7 @@ class _MyAppState extends State<MyApp> {
   ];
 
   StreamController<int> _phraseIndex = StreamController()..add(0);
+  StreamController<bool> _wordCorrect = StreamController()..add(false);
 
   final StreamController<bool> micPermissionGranted = StreamController();
 
@@ -57,6 +58,16 @@ class _MyAppState extends State<MyApp> {
   Future<void> initializeSphinx(SphinxStateUninitialized state) async {
     Directory directory = await getApplicationDocumentsDirectory();
     state.initRecognizer(directory.path);
+  }
+
+  Future<void> wordCorrect(int phraseIndex, SphinxStateListening state) async {
+    _wordCorrect.add(true);
+    await Future.delayed(const Duration(seconds: 1), () {
+      int nextIndex = (phraseIndex + 1) % _vocabulary.length;
+      _wordCorrect.add(false);
+      _phraseIndex.add(nextIndex);
+      state.nextPhrase(_vocabulary[nextIndex]);
+    });
   }
 
   @override
@@ -150,49 +161,63 @@ class _MyAppState extends State<MyApp> {
                 } else if (state is SphinxStateListening) {
                   return Container(
                       width: double.infinity,
-                      child: Column(children: [
-                        Text(
-                          _vocabulary[phraseIndex],
-                          style: TextStyle(fontSize: 20.0),
-                        ),
-                        StreamBuilder<String>(
-                          stream: state.partialResults(),
-                          builder:
-                              (BuildContext context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              if (snapshot.data == _vocabulary[phraseIndex]) {
-                                int nextIndex = (phraseIndex + 1) % _vocabulary.length;
-                                _phraseIndex.add(nextIndex);
-                                state.nextPhrase(_vocabulary[nextIndex]);
-                              }
-                              return Container(
-                                width: double.infinity,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(snapshot.data),
-                                    RaisedButton(
-                                      onPressed: () {
-                                        state.stopListening();
-                                      },
-                                      child: Text("Stop Listening"),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            StreamBuilder(
+                                stream: _wordCorrect.stream,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot snapshot) {
+                                  bool wordCorrect = snapshot.data;
+                                  return Text(_vocabulary[phraseIndex],
+                                      style: TextStyle(
+                                          fontSize: 40.0,
+                                          color: wordCorrect == true
+                                              ? Colors.green
+                                              : Colors.black));
+                                }),
+                            StreamBuilder<String>(
+                              stream: state.partialResults(),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
+                                if (snapshot.hasData) {
+                                  if (snapshot.data ==
+                                      _vocabulary[phraseIndex]) {
+                                    wordCorrect(phraseIndex, state).then((aVoid) {
+                                      // No-op
+                                    });
+                                  }
+                                  return Container(
+                                    width: double.infinity,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        // Text(snapshot.data),
+                                        RaisedButton(
+                                          onPressed: () {
+                                            state.stopListening();
+                                          },
+                                          child: Text("Stop Listening"),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            } else if (snapshot.hasError) {
-                              return Center(
-                                child: Text("error while listening"),
-                              );
-                            } else {
-                              return Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                          },
-                        ),
-                      ]));
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text("error while listening"),
+                                  );
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                              },
+                            ),
+                          ]));
                 } else if (state is SphinxStateError) {
                   return Center(
                     child: RaisedButton(
