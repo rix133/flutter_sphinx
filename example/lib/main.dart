@@ -15,11 +15,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _sphinx = FlutterSphinx();
   final List<String> _vocabulary = const [
-    "groovy",
-    "doctor",
+    "this",
+    "reader",
     "is",
     "very",
-    "neat"
+    "neat",
+    "where",
+    "is",
+    "mojo"
   ];
 
   StreamController<int> _phraseIndex = StreamController()..add(0);
