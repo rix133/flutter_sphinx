@@ -64,6 +64,7 @@ private class SphinxListener: NSObject, FlutterStreamHandler, iSphinxDelegete {
 //    for word in hypArr {
 //      print(word)
 //    }
+    self.eventSink?(result)
   }
   
   public func iSphinxPartialResult(partialResult: String) {
@@ -110,6 +111,7 @@ public class SwiftFlutterSphinxPlugin: NSObject, FlutterPlugin, FlutterStreamHan
   
   private var eventSink: FlutterEventSink?
   private var sphinxListener: SphinxListener
+    private var assetsDir: String? = nil
   
   init(withISphinx iSphinx: iSphinx, stateChannel: FlutterEventChannel, listenChannel: FlutterEventChannel) {
     sphinxListener = SphinxListener(withISphinx: iSphinx, listenChannel: listenChannel)
@@ -125,13 +127,19 @@ public class SwiftFlutterSphinxPlugin: NSObject, FlutterPlugin, FlutterStreamHan
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     if (call.method == "init") {
+      self.assetsDir = call.arguments as? String
       self.eventSink?(buildEvent(eventName: "initialized"))
     } else if (call.method == "load") {
       sphinxListener.stop()
       self.eventSink?(buildEvent(eventName: "loading"))
-      sphinxListener.loadVocabulary(words: call.arguments as! [String]) {
+        sphinxListener.loadVocabulary(words: [call.arguments as! String]) {
         self.eventSink?(self.buildEvent(eventName: "loaded"))
       }
+    } else if (call.method == "word") {
+        sphinxListener.stop()
+        sphinxListener.loadVocabulary(words: [call.arguments as! String]) {
+            self.sphinxListener.start()
+        }
     } else if (call.method == "stop") {
       sphinxListener.stop()
       self.eventSink?(buildEvent(eventName: "loaded"))
