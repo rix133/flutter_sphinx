@@ -22,6 +22,8 @@ class _MyAppState extends State<MyApp> {
     "neat"
   ];
 
+  int _phraseIndex = 0;
+
   final StreamController<bool> micPermissionGranted = StreamController();
 
   Future<bool> initialize() async {
@@ -38,7 +40,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<bool> hasMicrophonePermission() async {
-    bool granted = await SimplePermissions.checkPermission(Permission.RecordAudio);
+    bool granted =
+        await SimplePermissions.checkPermission(Permission.RecordAudio);
     micPermissionGranted.add(granted);
     return granted;
   }
@@ -74,28 +77,29 @@ class _MyAppState extends State<MyApp> {
 
   Widget checkMicPermission() {
     return StreamBuilder(
-      stream: micPermissionGranted.stream,
-      builder: (BuildContext context, AsyncSnapshot<bool> snapshot){
-        if(!snapshot.hasData) {
-          return _loadingView();
-        } else if(snapshot.data == true) {
+        stream: micPermissionGranted.stream,
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          if (!snapshot.hasData) {
+            return _loadingView();
+          } else if (snapshot.data == true) {
             return contentView();
           } else {
             return new Center(
               child: RaisedButton(
-                child: Text("Request microphone permissions"), 
-                onPressed: (){
-                  requestMicPermission().then((granted){
+                child: Text("Request microphone permissions"),
+                onPressed: () {
+                  requestMicPermission().then((granted) {
                     // No-op. The request is updating the permission stream
                   });
-            },),);
+                },
+              ),
+            );
           }
         });
   }
 
   Widget _loadingView() {
-    return Center(
-                    child: CircularProgressIndicator());
+    return Center(child: CircularProgressIndicator());
   }
 
   Widget contentView() {
@@ -112,7 +116,7 @@ class _MyAppState extends State<MyApp> {
             return Center(
               child: RaisedButton(
                 onPressed: () {
-                  state.loadVocabulary(_vocabulary);
+                  state.loadVocabulary(_vocabulary[_phraseIndex]);
                 },
                 child: Text("Load Vocabulary"),
               ),
@@ -137,42 +141,55 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           } else if (state is SphinxStateListening) {
-            return StreamBuilder<String>(
-              stream: state.partialResults(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-                  return Container(
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(snapshot.data),
-                        RaisedButton(
-                          onPressed: () {
-                            state.stopListening();
-                          },
-                          child: Text("Stop Listening"),
-                        ),
-                      ],
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text("error while listening"),
-                  );
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              },
-            );
+            return Container(
+                width: double.infinity,
+                child: Column(children: [
+                  Text(_vocabulary[_phraseIndex], style: TextStyle(fontSize: 20.0),),
+                  StreamBuilder<String>(
+                    stream: state.partialResults(),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data == _vocabulary[_phraseIndex]) {
+                          int nextPhrase =
+                              (_phraseIndex + 1) % _vocabulary.length;
+                          setState(() {
+                            _phraseIndex = nextPhrase;
+                          });
+                          state.nextPhrase(_vocabulary[nextPhrase]);
+                        }
+                        return Container(
+                          width: double.infinity,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(snapshot.data),
+                              RaisedButton(
+                                onPressed: () {
+                                  state.stopListening();
+                                },
+                                child: Text("Stop Listening"),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Text("error while listening"),
+                        );
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                    },
+                  ),
+                ]));
           } else if (state is SphinxStateError) {
             return Center(
               child: RaisedButton(
                 onPressed: () {
-                  state.reloadVocabulary(_vocabulary);
+                  state.reloadVocabulary(_vocabulary[_phraseIndex]);
                 },
                 child: Text("Reload Vocabulary"),
               ),

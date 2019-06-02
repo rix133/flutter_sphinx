@@ -62,8 +62,8 @@ class SphinxStateUnloaded extends SphinxState {
 
   SphinxStateUnloaded(this._methodChannel);
 
-  Future loadVocabulary(List<String> words) async {
-    await _methodChannel.invokeMethod("load", words);
+  Future loadVocabulary(String phrase) async {
+    await _methodChannel.invokeMethod("load", phrase);
   }
 }
 
@@ -73,8 +73,8 @@ class SphinxStateError extends SphinxState {
 
   SphinxStateError(this._methodChannel, this.errorMessage);
 
-  Future reloadVocabulary(List<String> words) async {
-    await _methodChannel.invokeMethod("load", words);
+  Future reloadVocabulary(String phrase) async {
+    await _methodChannel.invokeMethod("load", phrase);
   }
 }
 
@@ -112,6 +112,10 @@ class SphinxStateListening extends SphinxState {
 
   Future stopListening() async {
     await _methodChannel.invokeMethod("stop");
+  }
+
+  Future nextPhrase(String phrase) async {
+    await _methodChannel.invokeMethod("load", phrase);
   }
 }
 
