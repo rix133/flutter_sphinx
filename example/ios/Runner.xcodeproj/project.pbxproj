@@ -285,6 +285,7 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh",
 				"${PODS_ROOT}/../.symlinks/flutter/ios-release/Flutter.framework",
+				"${BUILT_PRODUCTS_DIR}/flutter_plugin_tts/flutter_plugin_tts.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_sphinx/flutter_sphinx.framework",
 				"${BUILT_PRODUCTS_DIR}/iSphinx/iSphinx.framework",
 				"${BUILT_PRODUCTS_DIR}/large_file_copy/large_file_copy.framework",
@@ -296,6 +297,7 @@
 			);
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_plugin_tts.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_sphinx.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/iSphinx.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/large_file_copy.framework",

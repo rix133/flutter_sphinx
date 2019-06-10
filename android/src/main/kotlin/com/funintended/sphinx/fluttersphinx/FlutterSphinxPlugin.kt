@@ -90,7 +90,6 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
                 .defaultSetup()
                 .setAcousticModel(File(assetsDir, "en-us-ptm"))
                 .setDictionary(File(assetsDir, "cmudict-en-us.dict"))
-                .setRawLogDir(assetsDir)
                 .recognizer
                 .also {
                     it.addListener(this)

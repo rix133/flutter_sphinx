@@ -108,7 +108,7 @@ class SphinxStateListening extends SphinxState {
       // we get a big string back of the partial results, we just need to send out the last item
       print(message);
       return message.trim().split(" ").last;
-    }).startWith("");
+    }).startWith("").asBroadcastStream();
     return _partialResultStream;
   }
 

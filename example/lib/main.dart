@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:simple_permissions/simple_permissions.dart';
+import 'package:flutter_plugin_tts/flutter_plugin_tts.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,19 +15,142 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _sphinx = FlutterSphinx();
-  final List<String> _vocabulary = const [
-    "this",
-    "reader",
-    "is",
-    "very",
-    "neat",
-    "where",
-    "is",
-    "mojo"
+  final List<String> _vocabulary = randomisedVocabList();
+  static List<String> randomisedVocabList() {
+    return [
+      "a",
+      "about",
+      "after",
+      "all",
+      "am",
+      "an",
+      "and",
+      "are",
+      "as",
+      "at",
+      "away",
+      "back",
+      "be",
+      "because",
+      "big",
+      "but",
+      "by",
+      "call",
+      "came",
+      "can",
+      "come",
+      "could",
+      "did",
+      "do",
+      "down",
+      "for",
+      "from",
+      "get",
+      "go",
+      "got",
+      "had",
+      "has",
+      "have",
+      "he",
+      "her",
+      "here",
+      "him",
+      "his",
+      "in",
+      "into",
+      "is",
+      "it",
+      "last",
+      "like",
+      "little",
+      "live",
+      "look",
+      "made",
+      "make",
+      "me",
+      "my",
+      "new",
+      "next",
+      "not",
+      "now",
+      "of",
+      "off",
+      "old",
+      "on",
+      "once",
+      "one",
+      "other",
+      "our",
+      "out",
+      "over",
+      "put",
+      "saw",
+      "said",
+      "see",
+      "she",
+      "so",
+      "some",
+      "take",
+      "that",
+      "the",
+      "their",
+      "them",
+      "then",
+      "there",
+      "they",
+      "this",
+      "three",
+      "time",
+      "to",
+      "today",
+      "too",
+      "two",
+      "up",
+      "us",
+      "very",
+      "was",
+      "we",
+      "were",
+      "went",
+      "what",
+      "when",
+      "will",
+      "with",
+      "you",
+    ]..shuffle();
+  }
+
+  final List<String> _sentences = const [
+    "the cat",
+    "the rat",
+    "the bat",
+    'the rat',
+    'the dot',
+    'the cot',
+    'the dog',
+    'the rag',
+    'the spot',
+    'the pig',
+    'the dig',
+    'the cat is mad',
+    'the dog is bad',
+    'the rat is sad',
+    'the dot is flat',
+    'the red pot',
+    'the red dot',
+    'the cat got mad',
+    'the cat got mad and sat on a pad',
+    'I am',
+    'I am hot',
+    'I am not',
+    'I am not bad',
+    'I am not sad',
+    'I am not mad',
+    'I wish I had a frog'
   ];
 
-  StreamController<int> _phraseIndex = StreamController()..add(0);
-  StreamController<bool> _wordCorrect = StreamController()..add(false);
+  StreamController<int> _phraseIndex = StreamController.broadcast()..add(0);
+  StreamController<bool> _wordCorrect = StreamController.broadcast()..add(false);
 
   final StreamController<bool> micPermissionGranted = StreamController();
 
@@ -120,7 +244,7 @@ class _MyAppState extends State<MyApp> {
     return StreamBuilder<int>(
       stream: _phraseIndex.stream,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        int phraseIndex = snapshot.data;
+        int phraseIndex = snapshot.data ?? 0;
         return StreamBuilder<SphinxState>(
             stream: _sphinx.stateChanges,
             builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -165,17 +289,36 @@ class _MyAppState extends State<MyApp> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Text("Speak the word below:"),
                             StreamBuilder(
                                 stream: _wordCorrect.stream,
                                 builder: (BuildContext context,
                                     AsyncSnapshot snapshot) {
                                   bool wordCorrect = snapshot.data;
-                                  return Text(_vocabulary[phraseIndex],
-                                      style: TextStyle(
-                                          fontSize: 40.0,
-                                          color: wordCorrect == true
-                                              ? Colors.green
-                                              : Colors.black));
+                                  return Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(_vocabulary[phraseIndex],
+                                            style: TextStyle(
+                                                fontSize: 40.0,
+                                                color: wordCorrect == true
+                                                    ? Colors.green
+                                                    : Colors.black)),
+                                        IconButton(
+                                          icon: Icon(Icons.speaker),
+                                          onPressed: () {
+                                            FlutterPluginTts.setLanguage(
+                                                    'en-US')
+                                                .then((v) {
+                                              FlutterPluginTts.speak(
+                                                  _vocabulary[phraseIndex]);
+                                            });
+                                          },
+                                        )
+                                      ]);
                                 }),
                             StreamBuilder<String>(
                               stream: state.partialResults(),
@@ -184,7 +327,8 @@ class _MyAppState extends State<MyApp> {
                                 if (snapshot.hasData) {
                                   if (snapshot.data ==
                                       _vocabulary[phraseIndex]) {
-                                    wordCorrect(phraseIndex, state).then((aVoid) {
+                                    wordCorrect(phraseIndex, state)
+                                        .then((aVoid) {
                                       // No-op
                                     });
                                   }
