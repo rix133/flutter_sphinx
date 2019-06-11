@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:simple_permissions/simple_permissions.dart';
 import 'package:flutter_plugin_tts/flutter_plugin_tts.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:audioplayers/audio_cache.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,7 +16,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _sphinx = FlutterSphinx();
-  final _positiveAudioPlayer = AssetsAudioPlayer();
+  AudioCache audioPlayer = AudioCache();
   final List<String> _vocabulary = randomisedVocabList();
   static List<String> randomisedVocabList() {
     return [
@@ -157,10 +157,6 @@ class _MyAppState extends State<MyApp> {
   final StreamController<bool> micPermissionGranted = StreamController();
 
   Future<bool> initialize() async {
-    _positiveAudioPlayer.open(AssetsAudio(
-      asset: "positive.mp3",
-      folder: "assets/audio/",
-    ));
     bool assetCopy = await initAssetCopy();
     await hasMicrophonePermission();
     return assetCopy;
@@ -193,7 +189,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> wordCorrect(int phraseIndex, SphinxStateListening state) async {
     _wordCorrect.add(true);
 
-    _positiveAudioPlayer.play();
+    audioPlayer.play("audio/positive.mp3");
 
     await Future.delayed(const Duration(seconds: 1), () {
       int nextIndex = (phraseIndex + 1) % _vocabulary.length;
@@ -208,7 +204,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: const Text('Plugin example app'),
+            title: const Text('Sphinx Test App'),
           ),
           body: FutureBuilder(
               future: initialize(),

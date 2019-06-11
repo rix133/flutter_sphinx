@@ -17,13 +17,19 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.0.1</string>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.0.1</string>
+	<string>2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSContactsUsageDescription</key>
+	<string>This app doesn't use this permission. An included library has code to handle asking for permission, but we never request it</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app doesn't use this permission. An included library has code to handle asking for permission, but we never request it</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app doesn't use this permission. An included library has code to handle asking for permission, but we never request it</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone permission is required to listen to you speaking</string>
 	<key>UILaunchStoryboardName</key>

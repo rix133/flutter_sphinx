@@ -13,19 +13,22 @@ private class SphinxListener: NSObject, FlutterStreamHandler, iSphinxDelegete {
     self.isphinx = iSphinx
     super.init()
     self.isphinx.delegete = self
-    isphinx.prepareISphinx(onPreExecute: { (config) in
-      // You can add new parameter pocketshinx here
-      self.isphinx.silentToDetect = 1.0
-      self.isphinx.isStopAtEndOfSpeech = false
-      // config.setString(key: "-parameter", value: "value")
-    }) { (isSuccess) in
-      if isSuccess {
-        print("Preparation success!")
-      }
-    }
     
     listenChannel.setStreamHandler(self)
   }
+
+    func prepare(assetsDir: String) {
+        isphinx.prepareISphinx(aModelPath: "\(assetsDir)/en-us-ptm", dictFile: "\(assetsDir)/cmudict-en-us.dict", onPreExecute: { (config) in
+            // You can add new parameter pocketshinx here
+            self.isphinx.silentToDetect = 1.0
+            self.isphinx.isStopAtEndOfSpeech = false
+            // config.setString(key: "-parameter", value: "value")
+        }) { (isSuccess) in
+            if isSuccess {
+                print("Preparation success!")
+            }
+        }
+    }
   
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     self.eventSink = events
@@ -111,7 +114,7 @@ public class SwiftFlutterSphinxPlugin: NSObject, FlutterPlugin, FlutterStreamHan
   
   private var eventSink: FlutterEventSink?
   private var sphinxListener: SphinxListener
-    private var assetsDir: String? = nil
+  private var assetsDir: String = ""
   
   init(withISphinx iSphinx: iSphinx, stateChannel: FlutterEventChannel, listenChannel: FlutterEventChannel) {
     sphinxListener = SphinxListener(withISphinx: iSphinx, listenChannel: listenChannel)
@@ -127,7 +130,8 @@ public class SwiftFlutterSphinxPlugin: NSObject, FlutterPlugin, FlutterStreamHan
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     if (call.method == "init") {
-      self.assetsDir = call.arguments as? String
+      self.assetsDir = call.arguments as! String
+      sphinxListener.prepare(assetsDir: self.assetsDir)
       self.eventSink?(buildEvent(eventName: "initialized"))
     } else if (call.method == "load") {
       sphinxListener.stop()
