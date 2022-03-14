@@ -1,4 +1,4 @@
-package com.funintended.sphinx.fluttersphinx
+package com.sphinx.fluttersphinx
 
 class SphinxUtilities {
     companion object {

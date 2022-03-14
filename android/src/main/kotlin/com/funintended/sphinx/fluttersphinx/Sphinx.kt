@@ -1,4 +1,4 @@
-package com.funintended.sphinx.fluttersphinx
+package com.sphinx.fluttersphinx
 
 import edu.cmu.pocketsphinx.*
 import java.io.File

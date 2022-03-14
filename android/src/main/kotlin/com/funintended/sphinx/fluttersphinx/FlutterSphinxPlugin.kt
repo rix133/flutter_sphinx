@@ -1,16 +1,18 @@
-package com.funintended.sphinx.fluttersphinx
+package com.sphinx.fluttersphinx
+
+import androidx.annotation.NonNull
 
 import edu.cmu.pocketsphinx.*
+import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
 import java.io.File
 import java.lang.Exception
 
-class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val stateChannel: EventChannel) : MethodCallHandler, RecognitionListener {
+class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val stateChannel: EventChannel) : FlutterPlugin, MethodCallHandler, RecognitionListener {
 
     private var speechRecognizer: SpeechRecognizer? = null
     private var eventSink: EventChannel.EventSink? = null
@@ -43,6 +45,14 @@ class FlutterSphinxPlugin(private val listenChannel: EventChannel, private val s
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) { listenEventSink = events }
             override fun onCancel(arguments: Any?) {}
         })
+    }
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_sphinx")
+        channel.setMethodCallHandler(this)
+    }
+
+    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
