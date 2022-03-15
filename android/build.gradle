@@ -1,4 +1,4 @@
-group 'com.funintended.sphinx.fluttersphinx'
+group 'com.example.flutter_sphinx'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -42,15 +42,10 @@ android {
 
     defaultConfig {
         minSdkVersion 16
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-    lintOptions {
-        //disable 'InvalidPackage'
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api project(':pocketsphinx-android-5prealpha-release')
+    implementation project(":pocketsphinx-android-5prealpha-release")
 }
-

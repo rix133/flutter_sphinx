@@ -3,9 +3,9 @@ import 'package:flutter_sphinx/flutter_sphinx.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:simple_permissions/simple_permissions.dart';
-import 'package:flutter_plugin_tts/flutter_plugin_tts.dart';
-import 'package:audioplayers/audio_cache.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 void main() => runApp(MyApp());
 
@@ -17,6 +17,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final _sphinx = FlutterSphinx();
   AudioCache audioPlayer = AudioCache();
+  FlutterTts flutterTts = FlutterTts();
   final List<String> _vocabulary = randomisedVocabList();
   static List<String> randomisedVocabList() {
     return [
@@ -159,6 +160,7 @@ class _MyAppState extends State<MyApp> {
   Future<bool> initialize() async {
     bool assetCopy = await initAssetCopy();
     await hasMicrophonePermission();
+    await flutterTts.awaitSpeakCompletion(true);
     return assetCopy;
   }
 
@@ -170,14 +172,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<bool> hasMicrophonePermission() async {
-    bool granted =
-        await SimplePermissions.checkPermission(Permission.RecordAudio);
+    bool granted = await Permission.microphone.isGranted;
     micPermissionGranted.add(granted);
     return granted;
   }
 
   Future<bool> requestMicPermission() async {
-    await SimplePermissions.requestPermission(Permission.RecordAudio);
+    await Permission.microphone.request();
     return await hasMicrophonePermission();
   }
 
@@ -227,8 +228,8 @@ class _MyAppState extends State<MyApp> {
           } else if (snapshot.data == true) {
             return contentView();
           } else {
-            return new Center(
-              child: RaisedButton(
+            return Center(
+              child: ElevatedButton(
                 child: Text("Request microphone permissions"),
                 onPressed: () {
                   requestMicPermission().then((granted) {
@@ -256,12 +257,12 @@ class _MyAppState extends State<MyApp> {
               if (snapshot.hasData) {
                 final state = snapshot.data;
                 if (state is SphinxStateLoading) {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 } else if (state is SphinxStateUnloaded) {
                   return Center(
-                    child: RaisedButton(
+                    child: ElevatedButton(
                       onPressed: () {
                         state.loadVocabulary(_vocabulary[phraseIndex]);
                       },
@@ -270,7 +271,7 @@ class _MyAppState extends State<MyApp> {
                   );
                 } else if (state is SphinxStateUninitialized) {
                   return Center(
-                    child: RaisedButton(
+                    child: ElevatedButton(
                       onPressed: () {
                         initializeSphinx(state)
                             .then((aVoid) => print("Initialization started"));
@@ -280,7 +281,7 @@ class _MyAppState extends State<MyApp> {
                   );
                 } else if (state is SphinxStateLoaded) {
                   return Center(
-                    child: RaisedButton(
+                    child: ElevatedButton(
                       onPressed: () {
                         state.startListening();
                       },
@@ -302,9 +303,9 @@ class _MyAppState extends State<MyApp> {
                                   bool wordCorrect = snapshot.data;
                                   return Row(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                      CrossAxisAlignment.center,
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      MainAxisAlignment.center,
                                       children: [
                                         Text(_vocabulary[phraseIndex],
                                             style: TextStyle(
@@ -315,12 +316,8 @@ class _MyAppState extends State<MyApp> {
                                         IconButton(
                                           icon: Icon(Icons.speaker),
                                           onPressed: () {
-                                            FlutterPluginTts.setLanguage(
-                                                    'en-US')
-                                                .then((v) {
-                                              FlutterPluginTts.speak(
-                                                  _vocabulary[phraseIndex]);
-                                            });
+                                            flutterTts.setLanguage('en-US');
+                                            flutterTts.speak(_vocabulary[phraseIndex]);
                                           },
                                         )
                                       ]);
@@ -341,12 +338,12 @@ class _MyAppState extends State<MyApp> {
                                     width: double.infinity,
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                      CrossAxisAlignment.center,
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      MainAxisAlignment.center,
                                       children: <Widget>[
                                         // Text(snapshot.data),
-                                        RaisedButton(
+                                        ElevatedButton(
                                           onPressed: () {
                                             state.stopListening();
                                           },
@@ -369,7 +366,7 @@ class _MyAppState extends State<MyApp> {
                           ]));
                 } else if (state is SphinxStateError) {
                   return Center(
-                    child: RaisedButton(
+                    child: ElevatedButton(
                       onPressed: () {
                         state.reloadVocabulary(_vocabulary[phraseIndex]);
                       },
@@ -381,7 +378,7 @@ class _MyAppState extends State<MyApp> {
                 }
               } else if (snapshot.hasError) {
                 return Center(
-                  child: Text(snapshot.error),
+                  child: Text(snapshot.error.toString()),
                 );
               } else {
                 return Center(
