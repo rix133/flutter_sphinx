@@ -41,6 +41,18 @@ flutter:
     # To add assets to your plugin package, add an assets section, like this:
   assets:
     - packages/flutter_sphinx/sync/assets.lst
+    - packages/flutter_sphinx/sync/cmudict-en-us.dict
+    - packages/flutter_sphinx/sync/digits.gram
+    - packages/flutter_sphinx/sync/en-phone.dmp
+    - packages/flutter_sphinx/sync/en-us-ptm/feat.params
+    - packages/flutter_sphinx/sync/en-us-ptm/mdef
+    - packages/flutter_sphinx/sync/en-us-ptm/means
+    - packages/flutter_sphinx/sync/en-us-ptm/noisedict
+    - packages/flutter_sphinx/sync/en-us-ptm/sendump
+    - packages/flutter_sphinx/sync/en-us-ptm/transition_matrices
+    - packages/flutter_sphinx/sync/en-us-ptm/variances
+    - packages/flutter_sphinx/sync/menu.gram
+    - packages/flutter_sphinx/sync/weather.dmp
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   #

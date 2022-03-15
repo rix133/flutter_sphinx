@@ -140,9 +140,9 @@ Future<void> copyAssetsToDocumentsDir(
 
   try {
     //final manifestContent = await rootBundle.loadString('AssetManifest.json');
+    //print(manifestContent);
     String syncListString =  await rootBundle.loadString("$assetsDir/assets.lst");
     List<String> syncList = syncListString.split("\n");
-
     for (String path in syncList) {
       print("Copying file: $assetsDir/$path");
 
