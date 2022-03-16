@@ -6,6 +6,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:path/path.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class FlutterSphinx {
   static const MethodChannel _methodChannel =
@@ -143,25 +144,36 @@ Future<void> copyAssetsToDocumentsDir(
     //print(manifestContent);
     String syncListString =  await rootBundle.loadString("$assetsDir/assets.lst");
     List<String> syncList = syncListString.split("\n");
-    for (String path in syncList) {
-      print("Copying file: $assetsDir/$path");
+    bool writePermission = await Permission.storage.isGranted;
+    if(!writePermission){
+      await Permission.storage.request();
+      writePermission = await Permission.storage.isGranted;
+    }
+    if(writePermission) {
+      for (String path in syncList) {
+        print("Copying file: $assetsDir/$path");
 
-      Directory directory = await getApplicationDocumentsDirectory();
-      String filePath = join(directory.path, path);
-      if (FileSystemEntity.typeSync(filePath) ==
-          FileSystemEntityType.notFound) {
-        ByteData data = await rootBundle.load("$assetsDir/$path");
-        List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        Directory directory = await getApplicationDocumentsDirectory();
+        String filePath = join(directory.path, path);
+        if (FileSystemEntity.typeSync(filePath) ==
+            FileSystemEntityType.notFound) {
+          ByteData data = await rootBundle.load("$assetsDir/$path");
+          List<int> bytes = data.buffer.asUint8List(
+              data.offsetInBytes, data.lengthInBytes);
 
-        // Create the directory if needed
-        String fileDir = filePath.substring(0, filePath.lastIndexOf("/"));
-        print("Creating directory: $fileDir");
-        await Directory(fileDir).create(recursive: true);
-        print("Writing out the file");
-        await File(filePath).writeAsBytes(bytes);
-      } else {
-        print("File already exists");
+          // Create the directory if needed
+          String fileDir = filePath.substring(0, filePath.lastIndexOf("/"));
+          print("Creating directory: $fileDir");
+          await Directory(fileDir).create(recursive: true);
+          print("Writing out the file");
+          await File(filePath).writeAsBytes(bytes);
+        } else {
+          print("File already exists");
+        }
       }
+    }
+    else{
+      print('Failed to copy the File. No premission');
     }
   } on PlatformException {
     print('Failed to copy the File.');
