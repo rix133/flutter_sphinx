@@ -1,6 +1,6 @@
 
 import 'dart:async';
-
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:path_provider/path_provider.dart';
@@ -124,7 +124,7 @@ class SphinxStateListening extends SphinxState {
 }
 
 Future<void> writeKeywordSearchFile(List<String> keywords) async {
-  Directory directory = await getApplicationDocumentsDirectory();
+  Directory directory = await getApplicationSupportDirectory();
   String filePath = join(directory.path, "keyword_list.lst");
 
   // Create the directory if needed
@@ -137,23 +137,27 @@ Future<void> writeKeywordSearchFile(List<String> keywords) async {
 }
 
 Future<void> copyAssetsToDocumentsDir(
-    [String assetsDir = "packages/flutter_sphinx/sync"]) async {
+    [String assetsDir = "assets/sync"]) async {
 
   try {
     //final manifestContent = await rootBundle.loadString('AssetManifest.json');
-    //print(manifestContent);
+
+    //final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+    // >> To get paths you need these 2 lines
+
+    //final pfmPaths = manifestMap.keys
+    //    .where((String key) => key.contains('sync/'))
+    //    .toList();
+    //print(pfmPaths);
+
     String syncListString =  await rootBundle.loadString("$assetsDir/assets.lst");
     List<String> syncList = syncListString.split("\n");
-    bool writePermission = await Permission.storage.isGranted;
-    if(!writePermission){
-      await Permission.storage.request();
-      writePermission = await Permission.storage.isGranted;
-    }
-    if(writePermission) {
       for (String path in syncList) {
         print("Copying file: $assetsDir/$path");
+        //print(await File("$assetsDir/$path").exists());
 
-        Directory directory = await getApplicationDocumentsDirectory();
+        Directory directory = await getApplicationSupportDirectory();
+        print(directory);
         String filePath = join(directory.path, path);
         if (FileSystemEntity.typeSync(filePath) ==
             FileSystemEntityType.notFound) {
@@ -171,10 +175,6 @@ Future<void> copyAssetsToDocumentsDir(
           print("File already exists");
         }
       }
-    }
-    else{
-      print('Failed to copy the File. No premission');
-    }
   } on PlatformException {
     print('Failed to copy the File.');
     return;
