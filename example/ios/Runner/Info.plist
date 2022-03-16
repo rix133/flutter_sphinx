@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Flutter Sphinx</string>
+	<string>Reader PoC</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -17,13 +17,21 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<string>2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSContactsUsageDescription</key>
+	<string>This app doesn't use this permission. An included library has code to handle asking for permission, but we never request it</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app doesn't use this permission. An included library has code to handle asking for permission, but we never request it</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app doesn't use this permission. An included library has code to handle asking for permission, but we never request it</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone permission is required to listen to you speaking</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
