@@ -47,6 +47,21 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
 
+  assets:
+    - assets/sync/assets.lst
+    - assets/sync/cmudict-en-us.dict
+    - assets/sync/digits.gram
+    - assets/sync/en-phone.dmp
+    - assets/sync/en-us-ptm/feat.params
+    - assets/sync/en-us-ptm/mdef
+    - assets/sync/en-us-ptm/means
+    - assets/sync/en-us-ptm/noisedict
+    - assets/sync/en-us-ptm/sendump
+    - assets/sync/en-us-ptm/transition_matrices
+    - assets/sync/en-us-ptm/variances
+    - assets/sync/menu.gram
+    - assets/sync/weather.dmp
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
